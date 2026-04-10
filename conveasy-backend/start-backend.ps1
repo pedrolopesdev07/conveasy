@@ -1,0 +1,3 @@
+﻿cd "C:\Users\softw\OneDrive\Desktop\Conveasy\conveasy-backend"
+$env:PYTHONPATH = "."
+.\venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
