@@ -111,6 +111,21 @@ def create_access_token(
     return encoded_jwt
 
 
+def create_refresh_token(
+    data: Dict[str, Any],
+    expires_delta: Optional[timedelta] = None
+) -> str:
+    """Cria um refresh token JWT de longo prazo."""
+    if expires_delta is None:
+        expires_delta = timedelta(days=7)
+    return create_access_token(data, expires_delta)
+
+
+def verify_refresh_token(token: str) -> TokenData:
+    """Verifica o refresh token JWT."""
+    return verify_token(token)
+
+
 def verify_token(token: str) -> TokenData:
     """
     Verifica e decodifica um token JWT

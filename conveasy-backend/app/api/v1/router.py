@@ -5,7 +5,7 @@ Agrega todos os endpoints da versão 1
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import empresa, convenio, usuario
+from app.api.v1.endpoints import empresa, convenio, usuario, alertas, documentos
 
 router = APIRouter(prefix="/api/v1")
 
@@ -13,3 +13,5 @@ router = APIRouter(prefix="/api/v1")
 router.include_router(usuario.router)
 router.include_router(empresa.router)
 router.include_router(convenio.router)
+router.include_router(alertas.router)
+router.include_router(documentos.router)

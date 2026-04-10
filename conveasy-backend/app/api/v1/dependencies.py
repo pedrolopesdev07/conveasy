@@ -4,7 +4,7 @@ Funções reutilizáveis para validação e autorização
 """
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError
 import logging
 
@@ -16,7 +16,7 @@ security = HTTPBearer()
 
 
 async def get_current_user(
-    credentials: HTTPAuthCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> TokenData:
     """
     Valida o token JWT ea retorna os dados do usuário atual

@@ -8,6 +8,13 @@ from typing import Optional
 from datetime import datetime
 
 
+# Função manual que faz o papel do 'to_camel' (compatível com Pydantic V1)
+def to_camel(string: str) -> str:
+    """Converte 'razao_social' para 'razaoSocial'"""
+    words = string.split('_')
+    return words[0] + ''.join(word.capitalize() for word in words[1:])
+
+
 class EmpresaBase(BaseModel):
     """Base model com atributos comuns de Empresa"""
     razao_social: str = Field(..., min_length=1, max_length=255)
@@ -21,6 +28,12 @@ class EmpresaBase(BaseModel):
     website: Optional[str] = Field(None, max_length=255)
     representante_legal: str = Field(..., min_length=1, max_length=255)
     cargo_representante: str = Field(..., min_length=1, max_length=100)
+
+    # Configuração compatível com Pydantic V1
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True  # Permite usar 'razao_social' ou 'razaoSocial'
+        orm_mode = True                        # Essencial para integração com banco de dados
 
 
 class EmpresaCreate(EmpresaBase):

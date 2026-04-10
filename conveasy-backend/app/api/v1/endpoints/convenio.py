@@ -3,14 +3,16 @@ Endpoints de Convênio
 CRUD de convênios
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from typing import List
+from uuid import uuid4
 import logging
 
 from app.schemas.convenio import ConvenioCreate, ConvenioUpdate, ConvenioResponse
 from app.database.supabase_client import get_supabase
 from app.api.v1.dependencies import get_current_gestor_or_admin, get_current_user
 from app.core.security import TokenData
+from app.utils.validators import validate_file_size, validate_file_type, sanitize_filename
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +118,79 @@ async def get_convenio(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Erro ao obter convênio"
+        )
+
+
+@router.post("/{convenio_id}/documentos", status_code=status.HTTP_201_CREATED)
+async def upload_documento(
+    convenio_id: str,
+    file: UploadFile = File(...),
+    current_user: TokenData = Depends(get_current_gestor_or_admin),
+    supabase=Depends(get_supabase)
+):
+    """
+    Faz upload de um documento para um convênio no Supabase Storage.
+    Valida tamanho (máx 10MB) e tipo de arquivo permitido.
+    """
+    try:
+        # Validar tamanho do arquivo (máx 10MB)
+        content = await file.read()
+        if not validate_file_size(len(content), 10):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Arquivo muito grande. Tamanho máximo: 10MB"
+            )
+
+        # Validar tipo de arquivo
+        allowed_types = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'jpg', 'jpeg', 'png']
+        if not validate_file_type(file.filename, allowed_types):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Tipo de arquivo não permitido. Tipos aceitos: {', '.join(allowed_types)}"
+            )
+
+        # Sanitizar nome do arquivo
+        sanitized_filename = sanitize_filename(file.filename)
+
+        storage_path = f"{convenio_id}/{uuid4().hex}_{sanitized_filename}"
+        upload_response = supabase.storage.from_("documentos").upload(
+            storage_path,
+            content,
+            content_type=file.content_type,
+        )
+
+        if upload_response.error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao enviar documento"
+            )
+
+        metadata = {
+            "convenio_id": convenio_id,
+            "nome": sanitized_filename,
+            "tipo": (sanitized_filename.split(".")[-1] or "FILE").upper(),
+            "tamanho": str(len(content)),
+            "storage_path": storage_path,
+            "uploaded_at": datetime.utcnow().isoformat(),
+            "uploaded_by": current_user.user_id,
+        }
+
+        insert_response = supabase.table("documentos").insert(metadata).execute()
+        if insert_response.error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Erro ao salvar metadados do documento"
+            )
+
+        return {"message": "Documento enviado com sucesso", "storage_path": storage_path}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro no upload de documento: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao fazer upload de documento"
         )
 
 

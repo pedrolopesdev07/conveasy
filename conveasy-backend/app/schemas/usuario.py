@@ -11,6 +11,8 @@ from app.models.usuario import (
     UsuarioResponse,
     UsuarioLoginRequest,
     UsuarioLoginResponse,
+    UsuarioRefreshRequest,
+    UsuarioChangePassword,
     UserRole
 )
 
@@ -22,5 +24,7 @@ __all__ = [
     "UsuarioResponse",
     "UsuarioLoginRequest",
     "UsuarioLoginResponse",
+    "UsuarioRefreshRequest",
+    "UsuarioChangePassword",
     "UserRole"
 ]

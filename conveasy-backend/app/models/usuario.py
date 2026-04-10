@@ -64,5 +64,17 @@ class UsuarioLoginRequest(BaseModel):
 class UsuarioLoginResponse(BaseModel):
     """Schema para resposta de login"""
     access_token: str
+    refresh_token: str
     token_type: str
     usuario: UsuarioResponse
+
+
+class UsuarioRefreshRequest(BaseModel):
+    """Schema para refresh token"""
+    refresh_token: str
+
+
+class UsuarioChangePassword(BaseModel):
+    """Schema para mudança de senha"""
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=255)

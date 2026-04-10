@@ -4,7 +4,20 @@ API de Gerenciamento de Convênios para o setor TEIA da UNDB
 
 ## 📋 Descrição
 
-Sistema de backend desenvolvido em **Python 3.10+** com **FastAPI** para gerenciar convênios, empresas parceiras e usuários do sistema TEIA. Utiliza **Supabase** como banco de dados e storage.
+Sistema de backend desenvolvido em **Python 3.10+** com **FastAPI** para gerenciar convênios, empresas parceiras e usuários do sistema TEIA. Utiliza **Supabase** como banco de dados e storage, com autenticação JWT completa e sistema de alertas automatizado.
+
+## ✨ Funcionalidades
+
+- 🔐 **Autenticação JWT** com refresh tokens
+- 👥 **Controle de Acesso Baseado em Roles** (Admin, Gestor, Usuário)
+- 🤝 **CRUD completo de Convênios**
+- 🏢 **CRUD completo de Empresas** com validação de CNPJ
+- 📄 **Sistema de Documentos** com upload para Supabase Storage
+- 🚨 **Sistema de Alertas** automatizado para vencimentos
+- 📊 **Dashboard com métricas** em tempo real
+- 🛡️ **Rate limiting** para proteção contra ataques
+- 📝 **Logs estruturados** para auditoria
+- 🧪 **Testes automatizados** com pytest
 
 ## 🏗️ Arquitetura
 
@@ -13,33 +26,34 @@ conveasy-backend/
 ├── app/
 │   ├── core/                 # Funcionalidades essenciais
 │   │   ├── security.py       # JWT e autenticação
-│   │   └── config.py
+│   │   └── config.py         # Configurações Pydantic
 │   ├── database/             # Gerenciamento de dados
 │   │   └── supabase_client.py
-│   ├── models/               # Modelos Pydantic
-│   │   ├── empresa.py
-│   │   ├── convenio.py
-│   │   └── usuario.py
-│   ├── schemas/              # Schemas para requisições/respostas
-│   │   ├── empresa.py
-│   │   ├── convenio.py
-│   │   └── usuario.py
+│   ├── models/               # Modelos Pydantic v1
+│   ├── schemas/              # Schemas para requests/responses
 │   ├── utils/                # Utilitários e validadores
-│   │   └── validators.py
+│   │   └── validators.py     # Validação CNPJ, etc.
 │   ├── api/
 │   │   └── v1/               # API v1
-│   │       ├── router.py
-│   │       ├── dependencies.py
-│   │       └── endpoints/
-│   │           ├── empresa.py
-│   │           ├── convenio.py
-│   │           └── usuario.py
-│   ├── middlewares/          # Middlewares
+│   │       ├── router.py     # Agregador de rotas
+│   │       ├── dependencies.py # Dependências FastAPI
+│   │       └── endpoints/    # Endpoints específicos
+│   │           ├── usuarios.py
+│   │           ├── empresas.py
+│   │           ├── convenios.py
+│   │           ├── alertas.py
+│   │           └── documentos.py
+│   ├── middlewares/          # Middlewares FastAPI
 │   │   └── cors.py
-│   └── main.py               # Aplicação principal
-├── .env                      # Variáveis de ambiente (desenvolvimento)
-├── .env.example              # Exemplo de variáveis de ambiente
+│   └── main.py               # Aplicação FastAPI principal
+├── tests/                    # Testes automatizados
+│   └── test_api.py
+├── Dockerfile                # Container Docker
+├── docker-compose.yml        # Orquestração
+├── pytest.ini               # Configuração pytest
+├── start.sh                 # Script de inicialização
 ├── requirements.txt          # Dependências Python
+├── .env.example             # Exemplo de variáveis ambiente
 └── README.md
 ```
 
@@ -48,6 +62,164 @@ conveasy-backend/
 ### Pré-requisitos
 
 - Python 3.10+
+- Conta Supabase configurada
+- Git
+
+### Instalação
+
+1. **Clone o repositório**
+   ```bash
+   git clone <repository-url>
+   cd conveasy-backend
+   ```
+
+2. **Configure o ambiente**
+   ```bash
+   # Copie o arquivo de exemplo
+   cp .env.example .env
+
+   # Edite o .env com suas configurações do Supabase
+   nano .env
+   ```
+
+3. **Instale as dependências**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Execute a aplicação**
+   ```bash
+   # Modo desenvolvimento
+   ./start.sh dev
+
+   # Ou diretamente
+   uvicorn app.main:app --reload
+   ```
+
+### Usando Docker
+
+```bash
+# Construir e executar
+docker-compose up --build
+
+# Apenas executar
+docker-compose up
+```
+
+## 📚 API Documentation
+
+### Endpoints Principais
+
+#### Autenticação
+- `POST /api/v1/usuarios/login` - Login
+- `POST /api/v1/usuarios/refresh-token` - Refresh token
+- `POST /api/v1/usuarios/logout` - Logout
+- `POST /api/v1/usuarios/change-password` - Alterar senha
+
+#### Usuários
+- `GET /api/v1/usuarios/me` - Dados do usuário logado
+- `GET /api/v1/usuarios/` - Listar usuários (Admin/Gestor)
+- `POST /api/v1/usuarios/` - Criar usuário (Admin/Gestor)
+- `PUT /api/v1/usuarios/{id}` - Atualizar usuário
+- `DELETE /api/v1/usuarios/{id}` - Deletar usuário
+
+#### Convênios
+- `GET /api/v1/convenios/` - Listar convênios
+- `POST /api/v1/convenios/` - Criar convênio (Gestor/Admin)
+- `GET /api/v1/convenios/{id}` - Detalhes do convênio
+- `PUT /api/v1/convenios/{id}` - Atualizar convênio
+- `DELETE /api/v1/convenios/{id}` - Deletar convênio
+- `POST /api/v1/convenios/{id}/documentos` - Upload documento
+
+#### Empresas
+- `GET /api/v1/empresas/` - Listar empresas
+- `POST /api/v1/empresas/` - Criar empresa (Gestor/Admin)
+- `GET /api/v1/empresas/{id}` - Detalhes da empresa
+- `PUT /api/v1/empresas/{id}` - Atualizar empresa
+- `DELETE /api/v1/empresas/{id}` - Deletar empresa
+
+#### Alertas
+- `GET /api/v1/alertas/` - Listar alertas do usuário
+- `POST /api/v1/alertas/` - Criar alerta
+- `POST /api/v1/alertas/{id}/marcar-lida` - Marcar como lida
+
+#### Documentos
+- `GET /api/v1/documentos/` - Listar documentos
+- `GET /api/v1/documentos/{id}` - Detalhes do documento
+- `GET /api/v1/documentos/{id}/download` - Download do documento
+- `DELETE /api/v1/documentos/{id}` - Deletar documento
+
+### Documentação Interativa
+
+Acesse `http://localhost:8000/docs` para a documentação interativa Swagger UI.
+
+## 🧪 Testes
+
+```bash
+# Executar todos os testes
+./start.sh test
+
+# Ou diretamente
+pytest tests/ -v --cov=app --cov-report=html
+
+# Ver relatório de cobertura
+open htmlcov/index.html
+```
+
+## 🔒 Segurança
+
+- **JWT Authentication** com tokens de acesso e refresh
+- **Rate Limiting** para proteção contra ataques de força bruta
+- **CORS** configurado para origens específicas
+- **Password Hashing** com bcrypt
+- **Input Validation** com Pydantic
+- **SQL Injection Protection** via Supabase client
+
+## 📊 Monitoramento
+
+- Logs estruturados em todos os endpoints
+- Métricas de erro e performance
+- Alertas automáticos para convênios vencendo
+- Dashboard com estatísticas em tempo real
+
+## 🚀 Deployment
+
+### Produção
+
+1. Configure as variáveis de ambiente em produção
+2. Use o Docker Compose para deployment
+3. Configure um reverse proxy (nginx)
+4. Configure SSL/TLS
+
+### Ambiente de Produção Recomendado
+
+```yaml
+# docker-compose.prod.yml
+version: '3.8'
+services:
+  backend:
+    build: .
+    environment:
+      - DEBUG=false
+      - ACCESS_TOKEN_EXPIRE_MINUTES=15
+    restart: unless-stopped
+```
+
+## 🤝 Contribuição
+
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📝 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para detalhes.
+
+## 📞 Suporte
+
+Para suporte, entre em contato com a equipe de desenvolvimento ou abra uma issue no repositório.
 - Pip
 - Conta Supabase
 

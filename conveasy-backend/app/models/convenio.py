@@ -9,6 +9,13 @@ from datetime import datetime, date
 from enum import Enum
 
 
+# Função manual que faz o papel do 'to_camel' (compatível com Pydantic V1)
+def to_camel(string: str) -> str:
+    """Converte 'numero_convenio' para 'numeroConvenio'"""
+    words = string.split('_')
+    return words[0] + ''.join(word.capitalize() for word in words[1:])
+
+
 class StatusConvenio(str, Enum):
     """Enumeração de status de convênio"""
     PROPOSTA = "proposta"
@@ -29,6 +36,12 @@ class ConvenioBase(BaseModel):
     escopo: str = Field(..., min_length=1, max_length=1000)
     responsavel_id: str = Field(..., description="ID do usuário responsável")
     observacoes: Optional[str] = Field(None, max_length=1000)
+
+    # Configuração compatível com Pydantic V1
+    class Config:
+        alias_generator = to_camel
+        allow_population_by_field_name = True  # Permite usar 'numero_convenio' ou 'numeroConvenio'
+        orm_mode = True                        # Essencial para integração com banco de dados
 
 
 class ConvenioCreate(ConvenioBase):
