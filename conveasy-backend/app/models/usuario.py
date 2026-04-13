@@ -14,6 +14,7 @@ class UserRole(str, Enum):
     ADMIN = "admin"
     GESTOR = "gestor"
     USUARIO = "usuario"
+    ESTAGIARIO = "estagiario"
 
 
 class UsuarioBase(BaseModel):
@@ -24,8 +25,9 @@ class UsuarioBase(BaseModel):
     perfil: UserRole = Field(default=UserRole.USUARIO, alias="role")
     setor: Optional[str] = Field(None, max_length=100, alias="departamento")
     
-    class Config:
-        populate_by_name = True
+    model_config = {
+        "populate_by_name": True
+    }
 
 
 class UsuarioCreate(UsuarioBase):
@@ -39,8 +41,9 @@ class UsuarioUpdate(BaseModel):
     email: Optional[EmailStr] = None
     setor: Optional[str] = Field(None, max_length=100, alias="departamento")
     
-    class Config:
-        populate_by_name = True
+    model_config = {
+        "populate_by_name": True
+    }
 
 
 class UsuarioUpdateRole(BaseModel):
@@ -51,13 +54,15 @@ class UsuarioUpdateRole(BaseModel):
 class UsuarioResponse(UsuarioBase):
     """Schema para resposta de Usuário"""
     id: str
-    createdat: datetime = Field(alias="created_at")
-    ultimoacesso: Optional[datetime] = Field(None, alias="ultimo_acesso")
-    status: bool = Field(True, alias="ativo")
-
-    class Config:
-        from_attributes = True
-        populate_by_name = True
+    nome: str = Field(alias="nome")  # ✅ Mapear 'nome' do banco para 'usuario' do frontend
+    createdat: datetime = Field(alias="createdAt")  # Alias para coluna do banco
+    ultimoacesso: Optional[datetime] = Field(None, alias="ultimoAcesso")  # Alias para coluna do banco
+    status: str = Field(default="ativo")  # Mudar para str conforme banco
+    
+    model_config = {
+        "from_attributes": True,
+        "populate_by_name": True
+    }
 
 
 class UsuarioLoginRequest(BaseModel):

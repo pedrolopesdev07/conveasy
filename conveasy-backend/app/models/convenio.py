@@ -37,11 +37,12 @@ class ConvenioBase(BaseModel):
     responsavel_id: str = Field(..., description="ID do usuário responsável")
     observacoes: Optional[str] = Field(None, max_length=1000)
 
-    # Configuração compatível com Pydantic V1
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True  # Permite usar 'numero_convenio' ou 'numeroConvenio'
-        orm_mode = True                        # Essencial para integração com banco de dados
+    # Configuração compatível com Pydantic V2
+    model_config = {
+        "alias_generator": to_camel,
+        "populate_by_name": True,  # Substitui allow_population_by_field_name
+        "from_attributes": True     # Substitui orm_mode
+    }
 
 
 class ConvenioCreate(ConvenioBase):
@@ -67,5 +68,4 @@ class ConvenioResponse(ConvenioBase):
     data_atualizacao: Optional[datetime] = None
     documento_url: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    

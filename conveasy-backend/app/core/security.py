@@ -14,6 +14,11 @@ from pydantic import BaseModel
 
 from app.config import settings
 
+# Monkeypatch para corrigir erro de versão do bcrypt
+import bcrypt
+if not hasattr(bcrypt, "__about__"):
+    bcrypt.__about__ = type("About", (), {"__version__": bcrypt.__version__})
+
 
 class UserRole(str, Enum):
     """Enumeração de papéis de usuário suportados"""

@@ -53,7 +53,7 @@ export class AuthService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        nome_completo: nomeCompleto,
+        usuario: nomeCompleto,  // ✅ Campo 'usuario' conforme esperado pelo backend
         email,
         senha,
       }),

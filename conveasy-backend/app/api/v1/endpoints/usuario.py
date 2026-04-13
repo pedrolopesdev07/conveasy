@@ -189,26 +189,45 @@ async def signup(
         print(" passou do hash")
 
         print(" antes do insert")
-        response = supabase.table("usuarios").insert({
-            "nome": usuario.usuario,
+        
+        # Dicionário estrito sem valores None ou vazios, sem ID
+        dados_novo_usuario = {
+            "nome": usuario.usuario or "Usuário",  # ✅ Traduz 'usuario' do frontend para 'nome' do banco
             "email": usuario.email,
-            "perfil": usuario.perfil.value if hasattr(usuario.perfil, 'value') else usuario.perfil,
-            "setor": usuario.setor,
-            "senha_hash": senha_hash
-        }).execute()
-        print(" passou do insert")
-        print(f" Response: {response.data}")
-
-        return response.data[0]
+            "perfil": "estagiario",  # Valor fixo obrigatório pelo CHECK constraint
+            "status": "ativo",       # Valor fixo obrigatório pelo CHECK constraint
+            "createdAt": datetime.now().isoformat(),
+            "ultimoAcesso": "-",     # Valor padrão para cumprir o not-null
+            "setor": usuario.setor or "-", # Garante que não venha null
+            "senha": senha_hash
+        }
+            
+        print(f" Dados para insert: {dados_novo_usuario}")
+        
+        try:
+            response = supabase.table("usuarios").insert(dados_novo_usuario).execute()
+            print(" passou do insert")
+            print(f" Response: {response.data}")
+            return response.data[0]
+        except Exception as e:
+            # Captura detalhes do erro do Supabase
+            error_msg = str(e)
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_data = e.response.json()
+                    if 'error' in error_data:
+                        error_msg = f"Erro Supabase: {error_data['error']}"
+                except:
+                    pass
+            
+            logger.error(f"Erro no cadastro: {error_msg}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Erro ao cadastrar usuário: {error_msg}"
+            )
 
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Erro no cadastro: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erro ao cadastrar usuário"
-        )
 
 
 @router.post("/refresh-token", response_model=UsuarioLoginResponse)

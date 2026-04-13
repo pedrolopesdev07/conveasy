@@ -29,11 +29,12 @@ class EmpresaBase(BaseModel):
     representante_legal: str = Field(..., min_length=1, max_length=255)
     cargo_representante: str = Field(..., min_length=1, max_length=100)
 
-    # Configuração compatível com Pydantic V1
-    class Config:
-        alias_generator = to_camel
-        allow_population_by_field_name = True  # Permite usar 'razao_social' ou 'razaoSocial'
-        orm_mode = True                        # Essencial para integração com banco de dados
+    # Configuração compatível com Pydantic V2
+    model_config = {
+        "alias_generator": to_camel,
+        "populate_by_name": True,  # Substitui allow_population_by_field_name
+        "from_attributes": True     # Substitui orm_mode
+    }
 
 
 class EmpresaCreate(EmpresaBase):
@@ -62,5 +63,4 @@ class EmpresaResponse(EmpresaBase):
     data_atualizacao: Optional[datetime] = None
     ativo: bool = True
 
-    class Config:
-        from_attributes = True
+    

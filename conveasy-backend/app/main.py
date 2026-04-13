@@ -35,6 +35,15 @@ setup_cors_middleware(app)
 app.include_router(v1_router)
 
 
+@app.on_event("startup")
+async def startup_event():
+    print("🚀 Aplicação FastAPI iniciada com sucesso!")
+    print(f"📍 Host: 0.0.0.0")
+    print(f"🌐 Porta: 8000")
+    print(f"🔧 DEBUG: {settings.DEBUG}")
+    print(f"📡 CORS Origins: {settings.CORS_ORIGINS}")
+
+
 @app.get("/", tags=["Root"])
 async def read_root():
     """
