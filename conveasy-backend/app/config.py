@@ -3,13 +3,13 @@ Configurações da aplicação FastAPI
 Carrega variáveis de ambiente e define configurações globais
 """
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import List
 
 
 class Settings(BaseSettings):
     """
-    Configurações da aplicação utilizando Pydantic v1
+    Configurações da aplicação utilizando Pydantic v2
     Todas as variáveis são carregadas do arquivo .env
     """
 
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # CORS Configuration
-    CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
 
     class Config:
         env_file = ".env"

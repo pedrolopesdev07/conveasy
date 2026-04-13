@@ -16,12 +16,12 @@ def setup_cors_middleware(app: FastAPI) -> None:
         app: Instância da aplicação FastAPI
 
     Nota:
-        As origens permitidas são carregadas do arquivo .env
-        Padrão: ["http://localhost:3000", "http://localhost:5173"]
+        Temporariamente permitindo todas as origens para debug
     """
+    # Temporariamente permitir todas as origens para debug
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS,
+        allow_origins=["*"],  # Temporário para debug
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

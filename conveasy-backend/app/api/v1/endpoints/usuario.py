@@ -122,14 +122,14 @@ async def login(
             data={
                 "sub": usuario["email"],
                 "user_id": usuario["id"],
-                "role": usuario["role"]
+                "role": usuario["perfil"]
             }
         )
         refresh_token = create_refresh_token(
             data={
                 "sub": usuario["email"],
                 "user_id": usuario["id"],
-                "role": usuario["role"]
+                "role": usuario["perfil"]
             }
         )
 
@@ -150,26 +150,33 @@ async def login(
         )
 
 
+@router.post("/test-signup")
+async def test_signup(usuario: UsuarioCreate):
+    """
+    Endpoint de teste sem Supabase
+    """
+    print(" TESTE SIGNUP SEM SUPABASE")
+    print(f" Dados recebidos: {usuario.dict()}")
+    return {"msg": "funcionando", "data": usuario.dict()}
+
+
 @router.post("/signup", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 async def signup(
     usuario: UsuarioCreate,
     supabase=Depends(get_supabase)
 ):
     """
-    Cadastra um novo usuário sem exigir autenticação de admin.
-
-    Args:
-        usuario: Dados do usuário a criar
-        supabase: Cliente Supabase
-
-    Returns:
-        UsuarioResponse: Usuário criado
+    Endpoint para cadastro de novo usuário
     """
+    print(" INICIOU SIGNUP")
+    print(f" Dados recebidos: {usuario.dict()}")
+
     try:
-        existing = supabase.table("usuarios") \
-            .select("*") \
-            .eq("email", usuario.email) \
-            .execute()
+        # Verificar se email já existe
+        print(" antes do select")
+        existing = supabase.table("usuarios").select("*").eq("email", usuario.email).execute()
+        print(" passou do select")
+        print(f" Existing: {existing.data}")
 
         if existing.data:
             raise HTTPException(
@@ -177,12 +184,20 @@ async def signup(
                 detail="Email já cadastrado"
             )
 
+        print(" antes do hash")
         senha_hash = get_password_hash(usuario.senha)
+        print(" passou do hash")
 
+        print(" antes do insert")
         response = supabase.table("usuarios").insert({
-            **usuario.dict(exclude={"senha"}),
+            "nome": usuario.usuario,
+            "email": usuario.email,
+            "perfil": usuario.perfil.value if hasattr(usuario.perfil, 'value') else usuario.perfil,
+            "setor": usuario.setor,
             "senha_hash": senha_hash
         }).execute()
+        print(" passou do insert")
+        print(f" Response: {response.data}")
 
         return response.data[0]
 

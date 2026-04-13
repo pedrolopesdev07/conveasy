@@ -18,11 +18,14 @@ class UserRole(str, Enum):
 
 class UsuarioBase(BaseModel):
     """Base model com atributos comuns de Usuário"""
-    nome_completo: str = Field(..., min_length=1, max_length=255)
+    usuario: str = Field(..., min_length=1, max_length=255)
+    nome: Optional[str] = Field(None, min_length=1, max_length=255, alias="nome_completo")
     email: EmailStr
-    role: UserRole = Field(default=UserRole.USUARIO)
-    telefone: Optional[str] = Field(None, max_length=20)
-    departamento: Optional[str] = Field(None, max_length=100)
+    perfil: UserRole = Field(default=UserRole.USUARIO, alias="role")
+    setor: Optional[str] = Field(None, max_length=100, alias="departamento")
+    
+    class Config:
+        populate_by_name = True
 
 
 class UsuarioCreate(UsuarioBase):
@@ -32,10 +35,12 @@ class UsuarioCreate(UsuarioBase):
 
 class UsuarioUpdate(BaseModel):
     """Schema para atualização de Usuário"""
-    nome_completo: Optional[str] = Field(None, min_length=1, max_length=255)
+    nome: Optional[str] = Field(None, min_length=1, max_length=255, alias="nome_completo")
     email: Optional[EmailStr] = None
-    telefone: Optional[str] = Field(None, max_length=20)
-    departamento: Optional[str] = Field(None, max_length=100)
+    setor: Optional[str] = Field(None, max_length=100, alias="departamento")
+    
+    class Config:
+        populate_by_name = True
 
 
 class UsuarioUpdateRole(BaseModel):
@@ -46,13 +51,13 @@ class UsuarioUpdateRole(BaseModel):
 class UsuarioResponse(UsuarioBase):
     """Schema para resposta de Usuário"""
     id: str
-    data_criacao: datetime
-    data_atualizacao: Optional[datetime] = None
-    ativo: bool = True
-    ultimo_acesso: Optional[datetime] = None
+    createdat: datetime = Field(alias="created_at")
+    ultimoacesso: Optional[datetime] = Field(None, alias="ultimo_acesso")
+    status: bool = Field(True, alias="ativo")
 
     class Config:
         from_attributes = True
+        populate_by_name = True
 
 
 class UsuarioLoginRequest(BaseModel):
