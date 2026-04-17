@@ -160,6 +160,7 @@ async def test_signup(usuario: UsuarioCreate):
     return {"msg": "funcionando", "data": usuario.dict()}
 
 
+@router.post("/signup_register", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/signup", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 async def signup(
     usuario: UsuarioCreate,
@@ -192,14 +193,14 @@ async def signup(
         
         # Dicionário estrito sem valores None ou vazios, sem ID
         dados_novo_usuario = {
-            "nome": usuario.usuario or "Usuário",  # ✅ Traduz 'usuario' do frontend para 'nome' do banco
+            "nome_completo": usuario.usuario or "Usuário",  # ✅ Traduz 'usuario' do frontend para 'nome_completo' do banco
             "email": usuario.email,
             "perfil": "estagiario",  # Valor fixo obrigatório pelo CHECK constraint
             "status": "ativo",       # Valor fixo obrigatório pelo CHECK constraint
-            "createdAt": datetime.now().isoformat(),
-            "ultimoAcesso": "-",     # Valor padrão para cumprir o not-null
+            "created_at": datetime.now().isoformat(),
+            "ultimo_acesso": "-",     # Valor padrão para cumprir o not-null
             "setor": usuario.setor or "-", # Garante que não venha null
-            "senha": senha_hash
+            "senha_hash": senha_hash
         }
             
         print(f" Dados para insert: {dados_novo_usuario}")

@@ -9,7 +9,6 @@ from enum import Enum
 import os
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel
 
 from app.config import settings
@@ -40,13 +39,6 @@ class TokenResponse(BaseModel):
     token_type: str
 
 
-# Contexto para hash de senhas
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
-
-
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
     Verifica se a senha em texto plano corresponde ao hash
@@ -58,7 +50,24 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         bool: True se a senha está correta, False caso contrário
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8")
+        )
+    except Exception:
+        return False
+
+
+def _normalize_password(password: str) -> bytes:
+    if password is None:
+        raise ValueError("Senha não pode ser nula")
+
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > 72:
+        raise ValueError("Senha não pode exceder 72 bytes")
+
+    return password_bytes
 
 
 def get_password_hash(password: str) -> str:
@@ -71,7 +80,8 @@ def get_password_hash(password: str) -> str:
     Returns:
         str: Hash bcrypt da senha
     """
-    return pwd_context.hash(password)
+    password_bytes = _normalize_password(password)
+    return bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
 
 
 def create_access_token(

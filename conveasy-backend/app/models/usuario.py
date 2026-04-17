@@ -54,9 +54,9 @@ class UsuarioUpdateRole(BaseModel):
 class UsuarioResponse(UsuarioBase):
     """Schema para resposta de Usuário"""
     id: str
-    nome: str = Field(alias="nome")  # ✅ Mapear 'nome' do banco para 'usuario' do frontend
-    createdat: datetime = Field(alias="createdAt")  # Alias para coluna do banco
-    ultimoacesso: Optional[datetime] = Field(None, alias="ultimoAcesso")  # Alias para coluna do banco
+    usuario: str = Field(alias="nome_completo")  # ✅ Mapear 'nome_completo' do banco para 'usuario' no frontend
+    created_at: Optional[datetime] = None
+    ultimo_acesso: Optional[str] = None
     status: str = Field(default="ativo")  # Mudar para str conforme banco
     
     model_config = {

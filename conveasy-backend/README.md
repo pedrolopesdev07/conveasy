@@ -88,12 +88,23 @@ conveasy-backend/
    ```
 
 4. **Execute a aplicação**
-   ```bash
-   # Modo desenvolvimento
-   ./start.sh dev
+   Antes de rodar, verifique que você está dentro da pasta `conveasy-backend` e, se estiver usando um ambiente virtual, que ele está ativado.
+   
+   Windows PowerShell:
+   ```powershell
+   .\venv\Scripts\Activate.ps1
+   python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+   ```
 
-   # Ou diretamente
-   uvicorn app.main:app --reload
+   Linux / macOS:
+   ```bash
+   source venv/bin/activate
+   python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+   ```
+
+   Outra opção de execução direta:
+   ```bash
+   ./start.sh dev
    ```
 
 ### Usando Docker
